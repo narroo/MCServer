@@ -137,13 +137,14 @@ public:																	// tolua_export
 
 	typedef std::map< AString, cPlugin * > PluginMap;
 	typedef std::list< cPlugin * > PluginList;
+	typedef std::list< cPluginHandle > PluginHandleList;
 	cPlugin * GetPlugin( const AString & a_Plugin ) const;				// tolua_export
 	cPluginHandle * GetPluginHandle( const AString & a_Plugin ) const;		// tolua_export
 	const PluginMap & GetAllPlugins() const;							// >> EXPORTED IN MANUALBINDINGS <<
 
 	void FindPlugins();													// tolua_export
 	void ReloadPlugins();												// tolua_export
-	void ReloadIndividualPlugin(cPluginHandle Plugin);					// tolua_export
+	void ReloadIndividualPlugin(cPluginHandle a_Plugin);					// tolua_export
 	
 	/// Adds the plugin to the list of plugins called for the specified hook type. Handles multiple adds as a single add
 	void AddHook(cPlugin * a_Plugin, int a_HookType);
@@ -272,7 +273,7 @@ private:
 	typedef std::map<AString, cCommandReg> CommandMap;
 
 	PluginList m_DisablePluginList;
-	PluginList m_PluginsToReload;
+	PluginHandleList m_PluginsToReload;
 	PluginMap  m_Plugins;
 	HookMap    m_Hooks;
 	CommandMap m_Commands;
@@ -285,6 +286,9 @@ private:
 
 	/// Reloads all plugins, defaulting to settings.ini for settings location
 	void ReloadPluginsNow(void);
+
+	/// Reloads Plugin, outputs error if plugin is referenced in another Lua plugin directly. 
+	void ReloadIndividualPluginNow(cPluginHandle a_Plugin);
 
 	/// Reloads all plugins with a cIniFile object expected to be initialised to settings.ini
 	void ReloadPluginsNow(cIniFile & a_SettingsIni);

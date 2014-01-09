@@ -51,10 +51,9 @@ void cPluginManager::ReloadPlugins(void)
 	m_bReloadPlugins = true;
 }
 
-void cPluginManager::ReloadIndividualPlugin(const AString & a_PluginName)
+void cPluginManager::ReloadIndividualPlugin(cPluginHandle a_Plugin)
 {
-	cPlugin* Plugin = this->GetPlugin(a_PluginName);
-	m_PluginsToReload.emplace_back(Plugin);
+	m_PluginsToReload.push_back(a_Plugin);
 	
 }
 
@@ -197,10 +196,10 @@ void cPluginManager::Tick(float a_Dt)
 	
 	if (m_PluginsToReload.size() != 0)
 	{
-		for(PluginList::Iterator itr = m_PluginsToReload.begin();
+		for(PluginHandleList::iterator itr = m_PluginsToReload.begin();
 		 itr != m_PluginsToReload.end(); itr++)
 		{
-			ReloadIndividualPluginNow(itr);
+			ReloadIndividualPluginNow(*itr);
 		}
 	}
 
