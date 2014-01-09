@@ -33,6 +33,19 @@ AString cPlugin::GetLocalFolder(void) const
 	return std::string("Plugins/") + m_Directory;
 }
 
+void cPlugin::Acquire(cPlugin * a_Plugin) {
+	cCSLock Lock(a_Plugin->m_CS);
+	a_Plugin->m_References++;
+}
+
+void cPlugin::Release(cPlugin *& a_Plugin) {
+	cCSLock Lock(a_Plugin->m_CS);
+	a_Plugin->m_References--;
+	if (a_Plugin->m_References == 0 && !a_Plugin->m_UserLoaded) {
+		delete a_Plugin;
+		a_Plugin = NULL;
+	}
+}
 
 
 

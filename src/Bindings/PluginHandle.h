@@ -9,7 +9,7 @@ class cPluginHandle
 public:
 	// tolua_end
 	
-	cPluginHandle(cPlugin * const a_Plugin);
+	cPluginHandle(cPlugin * a_Plugin);
 	virtual ~cPluginHandle();
 
 	// tolua_begin

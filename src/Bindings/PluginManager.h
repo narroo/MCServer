@@ -8,6 +8,7 @@
 
 
 class cPlugin;
+class cPluginHandle;
 
 // fwd: World.h
 class cWorld;
@@ -137,6 +138,7 @@ public:																	// tolua_export
 	typedef std::map< AString, cPlugin * > PluginMap;
 	typedef std::list< cPlugin * > PluginList;
 	cPlugin * GetPlugin( const AString & a_Plugin ) const;				// tolua_export
+	cPluginHandle * GetPluginHandle( const AString & a_Plugin ) const;		// tolua_export
 	const PluginMap & GetAllPlugins() const;							// >> EXPORTED IN MANUALBINDINGS <<
 
 	void FindPlugins();													// tolua_export

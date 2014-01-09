@@ -138,11 +138,18 @@ public:
 	};
 	PluginLanguage GetLanguage() { return m_Language; }
 	void SetLanguage( PluginLanguage a_Language ) { m_Language = a_Language; }
+	
+	static void Acquire(cPlugin * a_Plugin);
+	static void Release(cPlugin *& a_Plugin);
 
 private:
 	PluginLanguage m_Language;
 	AString m_Name;
 	int m_Version;
+	int m_References;
+	int m_LoadLocks;
+	bool m_UserLoaded;
+	cCriticalSection m_CS;
 
 	AString m_Directory;
 };	// tolua_export
