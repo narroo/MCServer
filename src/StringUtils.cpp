@@ -47,15 +47,13 @@ AString & AppendVPrintf(AString & str, const char *format, va_list args)
 	#endif  // _MSC_VER
 	
 	// Allocate a buffer and printf into it:
-	str.resize(len + 1);
-	// HACK: we're accessing AString's internal buffer in a way that is NOT guaranteed to always work. But it works on all STL implementations tested.
-	// I can't think of any other way that is safe, doesn't allocate twice as much space as needed and doesn't use C++11 features like the move constructor
+	std::vector<char> Buffer(len + 1);
 	#ifdef _MSC_VER
-	vsprintf_s((char *)str.data(), len + 1, format, args);
+	vsprintf_s((char *)&(Buffer.front()), Buffer.size(), format, args);
 	#else  // _MSC_VER
-	vsnprintf((char *)str.data(), len + 1, format, args);
+	vsnprintf((char *)&(Buffer.front()), Buffer.size(), format, args);
 	#endif  // else _MSC_VER
-	str.resize(len);
+	str.append(&(Buffer.front()), Buffer.size() - 1);
 	return str;
 }
 
@@ -612,7 +610,7 @@ AString StripColorCodes(const AString & a_Message)
 {
 	AString res(a_Message);
 	size_t idx = 0;
-	while (true)
+	for (;;)
 	{
 		idx = res.find("\xc2\xa7", idx);
 		if (idx == AString::npos)
@@ -759,7 +757,8 @@ AString Base64Decode(const AString & a_Base64String)
 		}
 	}
 	res.resize(o >> 3);
-	return res;}
+	return res;
+}
 
 
 
@@ -774,7 +773,7 @@ AString Base64Encode(const AString & a_Input)
 		'w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/'
 	};
 
-	std::string output;
+	AString output;
 	output.resize(((a_Input.size() + 2) / 3) * 4);
 
 	size_t output_index = 0;
@@ -804,7 +803,7 @@ AString Base64Encode(const AString & a_Input)
 
 		output[output_index++] = '=';
 	}
-	assert(output_index == output.size());
+	ASSERT(output_index == output.size());
 
 	return output;
 }

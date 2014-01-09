@@ -204,6 +204,8 @@ bool cServer::InitServer(cIniFile & a_SettingsIni)
 	m_PlayerCount = 0;
 	m_PlayerCountDiff = 0;
 
+	m_FaviconData = Base64Encode(cFile::ReadWholeFile("favicon.png")); // Will return empty string if file nonexistant; client doesn't mind
+
 	if (m_bIsConnected)
 	{
 		LOGERROR("ERROR: Trying to initialize server while server is already running!");
@@ -506,7 +508,7 @@ void cServer::ExecuteConsoleCommand(const AString & a_Cmd, cCommandOutputCallbac
 	
 	if (split[0].compare("killmem") == 0)
 	{
-		while (true)
+		for (;;)
 		{
 			new char[100 * 1024 * 1024];  // Allocate and leak 100 MiB in a loop -> fill memory and kill MCS
 		}
