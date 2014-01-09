@@ -10,6 +10,7 @@ public:
 	// tolua_end
 	
 	cPluginHandle(cPlugin * a_Plugin);
+	cPluginHandle(const cPluginHandle& a_Plugin);
 	virtual ~cPluginHandle();
 
 	// tolua_begin
@@ -19,8 +20,9 @@ public:
 	
 	bool TryLoadLock();
 	void ReleaseLoadLock();
+	// tolua_end
 	
-		// The following templates allow calls to arbitrary Lua functions residing in the plugin:
+	// The following templates allow calls to arbitrary Lua functions residing in the plugin:
 	
 	/// Call a Lua function with 0 args
 	template <typename FnT> bool Call(FnT a_Fn)
@@ -49,8 +51,6 @@ public:
 	{
 
 	}
-
-	// tolua_end
 
 private:
 	cPlugin * m_Plugin;

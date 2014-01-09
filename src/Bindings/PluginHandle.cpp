@@ -4,10 +4,19 @@
 #include "PluginHandle.h"
 #include "Plugin.h"
 
-cPluginHandle::cPluginHandle(cPlugin * a_Plugin) : m_Plugin(a_Plugin),m_PluginLoaded(true) {
+cPluginHandle::cPluginHandle(cPlugin * a_Plugin) : m_Plugin(a_Plugin),m_PluginLoaded(true)
+{
 	cPlugin::Acquire(m_Plugin);
 }
 
-cPluginHandle::~cPluginHandle() {
+cPluginHandle::cPluginHandle(const cPluginHandle & a_PluginHandle) 
+{
+	m_Plugin = a_PluginHandle.m_Plugin;
+	m_PluginLoaded =a_PluginHandle.m_PluginLoaded;
+	cPlugin::Acquire(m_Plugin);
+}
+
+cPluginHandle::~cPluginHandle() 
+{
 	cPlugin::Release(m_Plugin);
 }

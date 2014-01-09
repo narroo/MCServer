@@ -51,9 +51,12 @@ void cPluginManager::ReloadPlugins(void)
 	m_bReloadPlugins = true;
 }
 
-
-
-
+void cPluginManager::ReloadIndividualPlugin(const AString & a_PluginName)
+{
+	cPlugin* Plugin = this->GetPlugin(a_PluginName);
+	m_PluginsToReload.emplace_back(Plugin);
+	
+}
 
 void cPluginManager::FindPlugins(void)
 {
@@ -190,6 +193,15 @@ void cPluginManager::Tick(float a_Dt)
 	if (m_bReloadPlugins)
 	{
 		ReloadPluginsNow();
+	}
+	
+	if (m_PluginsToReload.size() != 0)
+	{
+		for(PluginList::Iterator itr = m_PluginsToReload.begin();
+		 itr != m_PluginsToReload.end(); itr++)
+		{
+			ReloadIndividualPluginNow(itr);
+		}
 	}
 
 	HookMap::iterator Plugins = m_Hooks.find(HOOK_TICK);
@@ -1406,6 +1418,7 @@ const cPluginManager::PluginMap & cPluginManager::GetAllPlugins() const
 void cPluginManager::UnloadPluginsNow()
 {
 	m_Hooks.clear();
+	m_PluginsToReload.clear();
 
 	while (!m_Plugins.empty())
 	{

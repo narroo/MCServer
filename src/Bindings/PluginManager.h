@@ -143,6 +143,7 @@ public:																	// tolua_export
 
 	void FindPlugins();													// tolua_export
 	void ReloadPlugins();												// tolua_export
+	void ReloadIndividualPlugin(cPluginHandle Plugin);					// tolua_export
 	
 	/// Adds the plugin to the list of plugins called for the specified hook type. Handles multiple adds as a single add
 	void AddHook(cPlugin * a_Plugin, int a_HookType);
@@ -271,6 +272,7 @@ private:
 	typedef std::map<AString, cCommandReg> CommandMap;
 
 	PluginList m_DisablePluginList;
+	PluginList m_PluginsToReload;
 	PluginMap  m_Plugins;
 	HookMap    m_Hooks;
 	CommandMap m_Commands;

@@ -20,6 +20,7 @@
 #include "WebAdmin.h"
 #include "Protocol/ProtocolRecognizer.h"
 #include "CommandOutput.h"
+#include "Bindings/PluginHandle.h"
 
 #include "MersenneTwister.h"
 
@@ -472,8 +473,20 @@ void cServer::ExecuteConsoleCommand(const AString & a_Cmd, cCommandOutputCallbac
 	}
 	if (split[0] == "reload")
 	{
-		cPluginManager::Get()->ReloadPlugins();
-		return;
+		if (split.size() == 1) 
+		{
+			cPluginManager::Get()->ReloadPlugins();
+			return;
+		} 
+		else
+		{
+			cPluginManager* PluginManager = cPluginManager::Get();
+			for(size_t size = split.size(), i = 1; i < size; i++)
+			{
+				cPluginHandle Handle(PluginManager->GetPlugin(split[i]));
+				PluginManager->ReloadIndividualPlugin(Handle);
+			}
+		}
 	}
 	
 	// There is currently no way a plugin can do these (and probably won't ever be):
