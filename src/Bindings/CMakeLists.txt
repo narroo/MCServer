@@ -19,6 +19,6 @@ ADD_CUSTOM_COMMAND(
 )
 
 #add cpp files here
-add_library(Bindings PluginManager LuaState WebPlugin Bindings ManualBindings LuaWindow Plugin PluginLua WebPlugin)
+add_library(Bindings PluginManager LuaState WebPlugin Bindings ManualBindings LuaWindow Plugin PluginLua WebPlugin PluginHandle)
 
 target_link_libraries(Bindings lua sqlite tolualib)
