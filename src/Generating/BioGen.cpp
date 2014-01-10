@@ -800,6 +800,58 @@ void cBioGenTwoLevel::GenBiomes_all(int a_ChunkX, int a_ChunkZ, cChunkDef::Biome
 
 void cBioGenTwoLevel::GenBiomes(int a_ChunkX, int a_ChunkZ, cChunkDef::BiomeMap & a_BiomeMap)
 {
+	// Uses the optimized distortion noise code and only 1/4 of the biome selections,
+	// by using half the resolution in each axis
+	
+	int BaseZ = cChunkDef::Width * a_ChunkZ;
+	int BaseX = cChunkDef::Width * a_ChunkX;
+	
+	// Distortions for linear interpolation:
+	int DistortX[cChunkDef::Width + 1][cChunkDef::Width + 1];
+	int DistortZ[cChunkDef::Width + 1][cChunkDef::Width + 1];
+	for (int x = 0; x <= 4; x++) for (int z = 0; z <= 4; z++)
+	{
+		int BlockX = BaseX + x * 4;
+		int BlockZ = BaseZ + z * 4;
+		float BlockXF = (float)(16 * BlockX) / 128;
+		float BlockZF = (float)(16 * BlockZ) / 128;
+		double NoiseX =  m_Noise.CubicNoise3D(BlockXF / 16, BlockZF / 16, 1000);
+		NoiseX += 0.5  * m_Noise.CubicNoise3D(BlockXF / 8,  BlockZF / 8,  2000);
+		NoiseX += 0.08 * m_Noise.CubicNoise3D(BlockXF,      BlockZF,      3000);
+		double NoiseZ  = m_Noise.CubicNoise3D(BlockXF / 16, BlockZF / 16, 4000);
+		NoiseZ += 0.5  * m_Noise.CubicNoise3D(BlockXF / 8,  BlockZF / 8,  5000);
+		NoiseZ += 0.08 * m_Noise.CubicNoise3D(BlockXF,      BlockZF,      6000);
+		
+		DistortX[4 * x][4 * z] = BlockX + (int)(64 * NoiseX);
+		DistortZ[4 * x][4 * z] = BlockZ + (int)(64 * NoiseZ);
+	}
+	
+	LinearUpscale2DArrayInPlace(&DistortX[0][0], cChunkDef::Width + 1, cChunkDef::Width + 1, 4, 4);
+	LinearUpscale2DArrayInPlace(&DistortZ[0][0], cChunkDef::Width + 1, cChunkDef::Width + 1, 4, 4);
+	
+	// Apply distortion to each block coord, then query the voronoi maps for biome group and biome index and choose biome based on that:
+	for (int z = 0; z < cChunkDef::Width; z += 2)
+	{
+		for (int x = 0; x < cChunkDef::Width; x += 2)
+		{
+			int BiomeGroup = m_VoronoiLarge.GetValueAt(DistortX[x][z], DistortZ[x][z]) / 7;
+			int MinDist1, MinDist2;
+			int BiomeIdx   = m_VoronoiSmall.GetValueAt(DistortX[x][z], DistortZ[x][z], MinDist1, MinDist2) / 11;
+			EMCSBiome Biome = SelectBiome(BiomeGroup, BiomeIdx, (MinDist1 < MinDist2 / 4) ? 0 : 1);
+			cChunkDef::SetBiome(a_BiomeMap, x,     z,     Biome);
+			cChunkDef::SetBiome(a_BiomeMap, x,     z + 1, Biome);
+			cChunkDef::SetBiome(a_BiomeMap, x + 1, z,     Biome);
+			cChunkDef::SetBiome(a_BiomeMap, x + 1, z + 1, Biome);
+		}
+	}
+}
+
+
+
+
+
+void cBioGenTwoLevel::GenBiomes_div(int a_ChunkX, int a_ChunkZ, cChunkDef::BiomeMap & a_BiomeMap)
+{
 	static const int NumDivisions = 4;
 	int BaseZ = cChunkDef::Width * a_ChunkZ;
 	int BaseX = cChunkDef::Width * a_ChunkX;
