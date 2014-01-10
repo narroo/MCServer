@@ -264,6 +264,12 @@ protected:
 	cNoise m_Noise;
 
 
+	/** Old implementation stored for comparison purposes */
+	void GenBiomes_all(int a_ChunkX, int a_ChunkZ, cChunkDef::BiomeMap & a_BiomeMap);
+	
+	/** Retrieve biome in one block, used for zoomed generation */
+	EMCSBiome cBioGenTwoLevel::GetBiomeAt(int a_BlockX, int a_BlockZ);
+
 	// cBiomeGen overrides:
 	virtual void GenBiomes(int a_ChunkX, int a_ChunkZ, cChunkDef::BiomeMap & a_BiomeMap) override;
 	virtual void InitializeBiomeGen(cIniFile & a_IniFile) override;

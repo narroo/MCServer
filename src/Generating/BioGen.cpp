@@ -753,7 +753,7 @@ cBioGenTwoLevel::cBioGenTwoLevel(int a_Seed) :
 
 
 
-void cBioGenTwoLevel::GenBiomes(int a_ChunkX, int a_ChunkZ, cChunkDef::BiomeMap & a_BiomeMap)
+void cBioGenTwoLevel::GenBiomes_all(int a_ChunkX, int a_ChunkZ, cChunkDef::BiomeMap & a_BiomeMap)
 {
 	int BaseZ = cChunkDef::Width * a_ChunkZ;
 	int BaseX = cChunkDef::Width * a_ChunkX;
@@ -792,6 +792,121 @@ void cBioGenTwoLevel::GenBiomes(int a_ChunkX, int a_ChunkZ, cChunkDef::BiomeMap 
 			cChunkDef::SetBiome(a_BiomeMap, x, z, SelectBiome(BiomeGroup, BiomeIdx, (MinDist1 < MinDist2 / 4) ? 0 : 1));
 		}
 	}
+}
+
+
+
+
+
+void cBioGenTwoLevel::GenBiomes(int a_ChunkX, int a_ChunkZ, cChunkDef::BiomeMap & a_BiomeMap)
+{
+	static const int NumDivisions = 4;
+	int BaseZ = cChunkDef::Width * a_ChunkZ;
+	int BaseX = cChunkDef::Width * a_ChunkX;
+	EMCSBiome OriginalBiomes[NumDivisions * NumDivisions];
+	for (int z = 0; z < NumDivisions; z++) for (int x = 0; x < NumDivisions; x++)
+	{
+		OriginalBiomes[z + NumDivisions * x] = GetBiomeAt(BaseX + x * cChunkDef::Width / NumDivisions, BaseZ + z * cChunkDef::Width / NumDivisions);
+	}  // for x, for z
+	
+	// Expand the small OriginalBiomes to cover the chunk:
+	int CoordX[cChunkDef::Width];
+	for (int x = 0; x < cChunkDef::Width; x++)
+	{
+		CoordX[x] = NumDivisions * (x * NumDivisions / cChunkDef::Width);  // Precalculated index into OriginalBiomes[] for this X coord
+	}
+	for (int z = 0; z < cChunkDef::Width; z++)
+	{
+		int CoordZ = z * NumDivisions / cChunkDef::Width;
+		for (int x = 0; x < cChunkDef::Width; x++)
+		{
+			cChunkDef::SetBiome(a_BiomeMap, x, z, OriginalBiomes[CoordX[x] + CoordZ]);
+		}
+	}
+	
+	/*
+	Smooth the edges - process each division's crossing in X and Z, adjust the neighboring biomes:
+	If there are for example these biomes:
+	1 1 1|1 1 1
+	1 1 1|1 1 1
+	-----+-----
+	2 2 2|1 1 1
+	2 2 2|1 1 1
+
+	then adjust the biomes neighboring the crossing like this:
+	1 1 1|1 1 1
+	1 1 1|1 1 1
+	-----+-----
+	2 2 1|1 1 1
+	2 2 2|1 1 1
+	*/
+	/*
+	// This doesn't work because the division's edges are sometime X+ and sometimes X-, depending on NumDivisions
+	for (int z = 1; z < NumDivisions; z++)
+	{
+		int DivisionZ = z * cChunkDef::Width / NumDivisions;
+		for (int x = 1; x < NumDivisions; x++)
+		{
+			int DivisionX = x * cChunkDef::Width / NumDivisions;
+			EMCSBiome b00, b01, b10, b11;  // The four biomes at this division's crossing
+			b00 = cChunkDef::GetBiome(a_BiomeMap, DivisionX,     DivisionZ);
+			b01 = cChunkDef::GetBiome(a_BiomeMap, DivisionX,     DivisionZ + 1);
+			b10 = cChunkDef::GetBiome(a_BiomeMap, DivisionX + 1, DivisionZ);
+			b11 = cChunkDef::GetBiome(a_BiomeMap, DivisionX + 1, DivisionZ + 1);
+			if (b00 == b01)
+			{
+				// b00 matches b01, if one more biome matches, adjust the fourth biome:
+				if (b01 == b10)
+				{
+					cChunkDef::SetBiome(a_BiomeMap, DivisionX + 1, DivisionZ + 1, b00);
+				}
+				else if (b01 == b11)
+				{
+					cChunkDef::SetBiome(a_BiomeMap, DivisionX + 1, DivisionZ, b00);
+				}
+			}
+			else if (b10 == b11)
+			{
+				// b10 matches b11, if one more biome matches, adjust the fourth biome:
+				if (b10 == b00)
+				{
+					cChunkDef::SetBiome(a_BiomeMap, DivisionX, DivisionZ + 1, b11);
+				}
+				else if (b10 == b01)
+				{
+					cChunkDef::SetBiome(a_BiomeMap, DivisionX, DivisionZ, b11);
+				}
+			}
+			// DEBUG: Show the division crossing point:
+			cChunkDef::SetBiome(a_BiomeMap, DivisionX, DivisionZ, biMesa);
+		}  // for x
+	}  // for z
+	*/
+}
+
+
+
+
+
+EMCSBiome cBioGenTwoLevel::GetBiomeAt(int a_BlockX, int a_BlockZ)
+{
+	float BlockXF = (float)(16 * a_BlockX) / 128;
+	float BlockZF = (float)(16 * a_BlockZ) / 128;
+	double NoiseX =  m_Noise.CubicNoise3D(BlockXF / 16, BlockZF / 16, 1000);
+	NoiseX += 0.5  * m_Noise.CubicNoise3D(BlockXF / 8,  BlockZF / 8,  2000);
+	NoiseX += 0.08 * m_Noise.CubicNoise3D(BlockXF,      BlockZF,      3000);
+	double NoiseZ  = m_Noise.CubicNoise3D(BlockXF / 16, BlockZF / 16, 4000);
+	NoiseZ += 0.5  * m_Noise.CubicNoise3D(BlockXF / 8,  BlockZF / 8,  5000);
+	NoiseZ += 0.08 * m_Noise.CubicNoise3D(BlockXF,      BlockZF,      6000);
+	
+	int DistortX = a_BlockX + (int)(64 * NoiseX);
+	int DistortZ = a_BlockZ + (int)(64 * NoiseZ);
+	
+	// Apply distortion to each block coord, then query the voronoi maps for biome group and biome index and choose biome based on that:
+	int BiomeGroup = m_VoronoiLarge.GetValueAt(DistortX, DistortZ) / 7;
+	int MinDist1, MinDist2;
+	int BiomeIdx   = m_VoronoiSmall.GetValueAt(DistortX, DistortZ, MinDist1, MinDist2) / 11;
+	return SelectBiome(BiomeGroup, BiomeIdx, (MinDist1 < MinDist2 / 4) ? 0 : 1);
 }
 
 
