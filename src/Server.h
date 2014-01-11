@@ -106,6 +106,9 @@ public:												// tolua_export
 	
 	/// Notifies the server that a player is being destroyed; the server uses this to adjust the number of players
 	void PlayerDestroying(const cPlayer * a_Player);
+
+	/* Returns base64 encoded favicon data (obtained from favicon.png) */
+	const AString & GetFaviconData(void) const { return m_FaviconData; }
 	
 	CryptoPP::RSA::PrivateKey & GetPrivateKey(void) { return m_PrivateKey; }
 	CryptoPP::RSA::PublicKey  & GetPublicKey (void) { return m_PublicKey; }
@@ -183,6 +186,7 @@ private:
 	cRCONServer m_RCONServer;
 	
 	AString m_Description;
+	AString m_FaviconData;
 	int m_MaxPlayers;
 	bool m_bIsHardcore;
 	
