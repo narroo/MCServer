@@ -54,6 +54,5 @@ public:
 
 private:
 	cPlugin * m_Plugin;
-	bool m_PluginLoaded;
 
 };	// tolua_export

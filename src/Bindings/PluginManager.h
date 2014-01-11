@@ -297,6 +297,10 @@ private:
 
 	/// Unloads all plugins
 	void UnloadPluginsNow(void);
+	
+	/// Unloads a plugins, if not Reloading will also unload any plugins that are only depended on
+	/// by this plugin. Returns false if the plugin is LoadLocked.
+	bool UnloadIndividualPluginNow(cPluginHandle a_Plugin, bool IsReload = false);
 
 	/// Handles writing default plugins if 'Plugins' key not found using a cIniFile object expected to be intialised to settings.ini
 	void InsertDefaultPlugins(cIniFile & a_SettingsIni);

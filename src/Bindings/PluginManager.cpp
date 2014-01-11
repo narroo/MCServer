@@ -54,7 +54,6 @@ void cPluginManager::ReloadPlugins(void)
 void cPluginManager::ReloadIndividualPlugin(cPluginHandle a_Plugin)
 {
 	m_PluginsToReload.push_back(a_Plugin);
-	
 }
 
 void cPluginManager::FindPlugins(void)
@@ -161,6 +160,39 @@ void cPluginManager::ReloadPluginsNow(cIniFile & a_SettingsIni)
 	CallHookPluginsLoaded();
 }
 
+
+void cPluginManager::ReloadIndividualPluginNow(cPluginHandle a_Plugin)
+{
+	LOG("-- Reloading Plugin %s --", a_Plugin.GetName().c_str());
+	if(!UnloadIndividualPluginNow(a_Plugin,true))
+	{
+		// Plugin could not be unloaded, probably loadlocked, try again next tick
+		ReloadIndividualPlugin(a_Plugin);
+		return;
+	}
+	AString PluginFile = a_Plugin.GetName();
+	int PluginsLoaded = 0;
+	if (!PluginFile.empty())
+	{
+		if (m_Plugins.find(PluginFile) != m_Plugins.end())
+		{
+			PluginsLoaded = LoadPlugin(PluginFile);
+		}
+	}
+
+	if (PluginsLoaded == 0)
+	{
+		LOG("-- No Plugins Loaded --");
+	}
+	else if (PluginsLoaded > 1)
+	{
+		LOG("-- Loaded %i Plugins --", PluginsLoaded);
+	}
+	else
+	{
+		LOG("-- Loaded 1 Plugin --");
+	}
+}
 
 
 
