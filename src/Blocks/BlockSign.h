@@ -93,7 +93,6 @@ public:
 		return (a_Meta < 0x08) ? 0x08 + a_Meta : 0x08 - a_Meta;
 	}
 
-
 	virtual NIBBLETYPE MetaMirrorYZ(NIBBLETYPE a_Meta) override
 	{
 		//  Mirrors signs over the YZ plane (East-West Mirroring)
